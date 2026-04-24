@@ -1,8 +1,12 @@
 .bracket-view {
   display: flex;
+  justify-content: safe center;
   gap: 1.5rem;
   overflow-x: auto;
-  padding: 1rem 0;
+  padding: 1rem 2rem;
+  box-sizing: border-box;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
 }
 
 .bracket-view__round {

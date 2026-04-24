@@ -34,7 +34,6 @@ export function App() {
   return (
     <main>
       <h1>FoodFighter</h1>
-      <BracketView bracket={bracket} />
       <MatchupCard
         matchup={current}
         progress={progress}
@@ -42,6 +41,7 @@ export function App() {
           dispatch({ type: "vote", matchupId: current.id, winnerId })
         }
       />
+      <BracketView bracket={bracket} />
     </main>
   );
 }
