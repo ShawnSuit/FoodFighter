@@ -13,7 +13,7 @@ export function App() {
       </p>
       {current ? (
         <p>
-          First matchup: {current.foodA.name} vs{" "}
+          First matchup: {current.foodA?.name ?? "(tbd)"} vs{" "}
           {current.foodB?.name ?? "(bye)"}
         </p>
       ) : (

@@ -28,6 +28,7 @@ describe("pickWinner", () => {
   it("returns a new bracket with the matchup resolved and does not mutate input", () => {
     const original = seedBracket(makeFoods(4));
     const matchup = original.rounds[0][0];
+    if (!matchup.foodA) throw new Error("expected foodA present in paired matchup");
     const winnerId = matchup.foodA.id;
 
     const updated = pickWinner(original, matchup.id, winnerId);
@@ -44,6 +45,7 @@ describe("getCurrentMatchup", () => {
   it("returns null once a champion is set", () => {
     const bracket = seedBracket(makeFoods(2));
     const final = bracket.rounds[0][0];
+    if (!final.foodA) throw new Error("expected foodA present in paired matchup");
     const resolved = pickWinner(bracket, final.id, final.foodA.id);
 
     expect(resolved.champion).not.toBeNull();
