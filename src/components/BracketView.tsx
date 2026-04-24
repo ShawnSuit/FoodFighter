@@ -89,7 +89,10 @@ export function BracketView({ bracket }: Props) {
         {bracket.rounds.map((round, roundIndex) => (
           <div className="bracket-view__round" key={roundIndex}>
             <h2 className="bracket-view__round-title">Round {roundIndex + 1}</h2>
-            <ul className="bracket-view__matchups">
+            <ul
+              className="bracket-view__matchups"
+              style={{ gap: `${roundIndex === 0 ? 0.5 : 3 ** roundIndex}rem` }}
+            >
               {round.map((matchup) => {
                 const isCurrent = matchup.id === currentMatchupId;
                 return (
