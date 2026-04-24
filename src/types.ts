@@ -1,4 +1,4 @@
-export type Category = "fast-food" | "world-cuisine" | "snacks" | "desserts";
+export type Category = 'fast-food' | 'world-cuisine' | 'snacks' | 'desserts';
 
 export interface Food {
   id: string;
@@ -9,7 +9,7 @@ export interface Food {
 
 export interface Matchup {
   id: string;
-  foodA: Food;
+  foodA: Food | null;
   foodB: Food | null;
   winner: Food | null;
 }
