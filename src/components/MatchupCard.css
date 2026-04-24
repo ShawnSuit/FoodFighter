@@ -1,0 +1,62 @@
+.matchup-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1rem;
+}
+
+.matchup-card__progress {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  letter-spacing: 0.02em;
+}
+
+.matchup-card__options {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.matchup-card__option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  min-width: 8rem;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: border-color 0.15s, transform 0.1s;
+}
+
+.matchup-card__option:hover {
+  border-color: #4a90e2;
+  transform: translateY(-2px);
+}
+
+.matchup-card__option--bye {
+  cursor: default;
+  color: #999;
+  border-style: dashed;
+}
+
+.matchup-card__emoji {
+  font-size: 2.5rem;
+}
+
+.matchup-card__name {
+  font-weight: 600;
+}
+
+.matchup-card__vs {
+  font-weight: 700;
+  color: #999;
+}
