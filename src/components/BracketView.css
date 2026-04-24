@@ -1,0 +1,79 @@
+.bracket-view {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding: 1rem 0;
+}
+
+.bracket-view__round {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 9rem;
+}
+
+.bracket-view__round-title {
+  margin: 0;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #888;
+}
+
+.bracket-view__matchups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.bracket-view__matchup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.3rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.bracket-view__matchup--current {
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
+}
+
+.bracket-view__slot {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.bracket-view__slot--winner {
+  background: #e7f4ea;
+  font-weight: 600;
+}
+
+.bracket-view__slot--loser {
+  color: #aaa;
+  text-decoration: line-through;
+}
+
+.bracket-view__slot--bye {
+  color: #bbb;
+  font-style: italic;
+}
+
+.bracket-view__emoji {
+  font-size: 1.1rem;
+}
+
+.bracket-view__bye {
+  color: #bbb;
+  font-style: italic;
+}
