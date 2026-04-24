@@ -48,6 +48,23 @@ describe("bracketReducer", () => {
     expect(state.currentRound).toBe(1);
   });
 
+  it("'vote' advances to round 1 when odd food counts seed byes that auto-resolve", () => {
+    // 3 foods → size 4 → 1 bye + 1 playable matchup in round 0.
+    // Byes auto-resolve during seedBracket. A single vote on the playable
+    // matchup should complete round 0 and advance to round 1.
+    const state = seedBracket(makeFoods(3));
+    const playable = state.rounds[0].find((m) => m.winner === null);
+    if (!playable || !playable.foodA) throw new Error("expected a playable matchup");
+
+    const next = bracketReducer(state, {
+      type: "vote",
+      matchupId: playable.id,
+      winnerId: playable.foodA.id,
+    });
+
+    expect(next.currentRound).toBe(1);
+  });
+
   it("'restart' returns a fresh bracket with no champion and round 0", () => {
     const state = initialBracket();
     const firstMatchup = state.rounds[0][0];

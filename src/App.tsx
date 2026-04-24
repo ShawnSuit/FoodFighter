@@ -19,31 +19,29 @@ export function App() {
   }
 
   const current = getCurrentMatchup(bracket);
+  if (!current) {
+    throw new Error("No current matchup and no champion — bracket state is inconsistent");
+  }
+
   const roundMatchups = bracket.rounds[bracket.currentRound];
-  const progress = current
-    ? {
-        matchIndex: roundMatchups.findIndex((m) => m.id === current.id),
-        matchesInRound: roundMatchups.length,
-        roundIndex: bracket.currentRound,
-        totalRounds: bracket.rounds.length,
-      }
-    : null;
+  const progress = {
+    matchIndex: bracket.currentMatchup,
+    matchesInRound: roundMatchups.length,
+    roundIndex: bracket.currentRound,
+    totalRounds: bracket.rounds.length,
+  };
 
   return (
     <main>
       <h1>FoodFighter</h1>
       <BracketView bracket={bracket} />
-      {current && progress ? (
-        <MatchupCard
-          matchup={current}
-          progress={progress}
-          onVote={(winnerId) =>
-            dispatch({ type: "vote", matchupId: current.id, winnerId })
-          }
-        />
-      ) : (
-        <p>Advancing…</p>
-      )}
+      <MatchupCard
+        matchup={current}
+        progress={progress}
+        onVote={(winnerId) =>
+          dispatch({ type: "vote", matchupId: current.id, winnerId })
+        }
+      />
     </main>
   );
 }
