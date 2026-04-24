@@ -12,6 +12,7 @@
 .bracket-view__round {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 0.5rem;
   min-width: 9rem;
 }
