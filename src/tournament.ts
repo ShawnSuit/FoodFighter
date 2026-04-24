@@ -1,139 +1,166 @@
-import { Food, Matchup, Bracket } from "./types";
+import type { Food, Matchup, Bracket } from './types';
 
-function shuffle<T>(array: T[]): T[] {
-  const result = [...array];
-  for (let i = result.length - 1; i > 0; i--) {
+function shuffle<T>(arr: T[]): T[] {
+  const copy = arr.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
+    [copy[i], copy[j]] = [copy[j], copy[i]];
   }
-  return result;
+  return copy;
 }
 
-function nextPowerOf2(n: number): number {
-  let p = 1;
-  while (p < n) p *= 2;
-  return p;
+function nextPowerOfTwo(n: number): number {
+  if (n <= 2) return 2;
+  return 2 ** Math.ceil(Math.log2(n));
+}
+
+function buildMatchupId(round: number, index: number): string {
+  return `r${round}-m${index}`;
+}
+
+function firstUndecided(round: Matchup[], from: number = 0): number {
+  let i = from;
+  while (i < round.length && round[i].winner !== null) i++;
+  return i;
 }
 
 export function seedBracket(foods: Food[]): Bracket {
-  const size = nextPowerOf2(foods.length);
+  if (foods.length < 2) {
+    throw new Error('seedBracket: need at least 2 foods');
+  }
   const shuffled = shuffle(foods);
+  const size = nextPowerOfTwo(shuffled.length);
+  const totalRounds = Math.log2(size);
+  const byeCount = size - shuffled.length;
+  const byeFoods = shuffled.slice(0, byeCount);
+  const playingFoods = shuffled.slice(byeCount);
 
-  const padded: (Food | null)[] = [...shuffled];
-  while (padded.length < size) padded.push(null);
-
-  const matchups: Matchup[] = [];
-  for (let i = 0; i < size; i += 2) {
-    const foodA = padded[i]!;
-    const foodB = padded[i + 1];
-    const isBye = foodB === null;
-    matchups.push({
-      id: `r0-m${i / 2}`,
-      foodA,
-      foodB,
-      winner: isBye ? foodA : null,
+  const round0: Matchup[] = [];
+  let m = 0;
+  for (const food of byeFoods) {
+    round0.push({
+      id: buildMatchupId(0, m++),
+      foodA: food,
+      foodB: null,
+      winner: null,
     });
   }
-
-  const totalRounds = Math.log2(size);
-  const rounds: Matchup[][] = [matchups];
+  for (let i = 0; i < playingFoods.length; i += 2) {
+    round0.push({
+      id: buildMatchupId(0, m++),
+      foodA: playingFoods[i],
+      foodB: playingFoods[i + 1],
+      winner: null,
+    });
+  }
+  const rounds: Matchup[][] = [round0];
   for (let r = 1; r < totalRounds; r++) {
-    const prevCount = rounds[r - 1].length;
+    const count = size / 2 ** (r + 1);
     const round: Matchup[] = [];
-    for (let m = 0; m < prevCount / 2; m++) {
-      round.push({ id: `r${r}-m${m}`, foodA: null!, foodB: null, winner: null });
+    for (let m = 0; m < count; m++) {
+      round.push({
+        id: buildMatchupId(r, m),
+        foodA: null,
+        foodB: null,
+        winner: null,
+      });
     }
     rounds.push(round);
   }
 
-  let bracket: Bracket = { rounds, currentRound: 0, currentMatchup: 0, champion: null };
+  let bracket: Bracket = {
+    rounds,
+    currentRound: 0,
+    currentMatchup: 0,
+    champion: null,
+  };
 
-  const allByesResolved = rounds[0].every((m) => m.winner !== null);
-  if (allByesResolved && rounds.length > 1) {
-    bracket = advanceRound(bracket);
+  for (const match of round0) {
+    if (match.foodA && !match.foodB) {
+      bracket = pickWinner(bracket, match.id, match.foodA.id);
+    }
   }
 
   return bracket;
 }
 
-export function pickWinner(bracket: Bracket, matchupId: string, winnerId: string): Bracket {
-  const rounds = bracket.rounds.map((round) =>
-    round.map((m) => {
-      if (m.id !== matchupId) return m;
-      const winner = m.foodA?.id === winnerId ? m.foodA : m.foodB;
-      return { ...m, winner };
-    })
-  );
-
-  const r = bracket.currentRound;
-  const nextMatchupIndex = bracket.currentMatchup + 1;
-  const roundComplete = nextMatchupIndex >= rounds[r].length;
-
-  const updated: Bracket = {
-    ...bracket,
-    rounds,
-    currentMatchup: roundComplete ? bracket.currentMatchup : nextMatchupIndex,
-  };
-
-  if (roundComplete) {
-    const isFinal = r === rounds.length - 1;
-    if (isFinal) {
-      const finalWinner = rounds[r].find((m) => m.id === matchupId)!;
-      const champion =
-        finalWinner.foodA?.id === winnerId ? finalWinner.foodA : finalWinner.foodB;
-      return { ...updated, champion };
+export function pickWinner(
+  bracket: Bracket,
+  matchupId: string,
+  winnerId: string,
+): Bracket {
+  let foundRound = -1;
+  let foundIndex = -1;
+  for (let r = 0; r < bracket.rounds.length; r++) {
+    const i = bracket.rounds[r].findIndex((m) => m.id === matchupId);
+    if (i !== -1) {
+      foundRound = r;
+      foundIndex = i;
+      break;
     }
   }
+  if (foundRound === -1) {
+    throw new Error(`pickWinner: matchup ${matchupId} not found`);
+  }
 
-  return updated;
+  const matchup = bracket.rounds[foundRound][foundIndex];
+  const winner =
+    matchup.foodA?.id === winnerId
+      ? matchup.foodA
+      : matchup.foodB?.id === winnerId
+        ? matchup.foodB
+        : null;
+  if (!winner) {
+    throw new Error(
+      `pickWinner: ${winnerId} is not in matchup ${matchupId}`,
+    );
+  }
+
+  const newRounds = bracket.rounds.map((r) => r.slice());
+  newRounds[foundRound][foundIndex] = { ...matchup, winner };
+
+  let newChampion = bracket.champion;
+  if (foundRound + 1 < newRounds.length) {
+    const nextIndex = Math.floor(foundIndex / 2);
+    const nextSlot: 'foodA' | 'foodB' = foundIndex % 2 === 0 ? 'foodA' : 'foodB';
+    const nextMatchup = newRounds[foundRound + 1][nextIndex];
+    newRounds[foundRound + 1][nextIndex] = {
+      ...nextMatchup,
+      [nextSlot]: winner,
+    };
+  } else {
+    newChampion = winner;
+  }
+
+  const currentRoundArr = newRounds[bracket.currentRound];
+  const newCurrentMatchup = firstUndecided(currentRoundArr, 0);
+
+  return {
+    ...bracket,
+    rounds: newRounds,
+    currentMatchup: newCurrentMatchup,
+    champion: newChampion,
+  };
 }
 
 export function getCurrentMatchup(bracket: Bracket): Matchup | null {
-  if (bracket.champion) return null;
   const round = bracket.rounds[bracket.currentRound];
   if (!round) return null;
-
   for (let i = bracket.currentMatchup; i < round.length; i++) {
-    const m = round[i];
-    if (m.winner === null && m.foodA && m.foodB) return m;
+    if (round[i].winner === null) return round[i];
   }
   return null;
 }
 
 export function advanceRound(bracket: Bracket): Bracket {
-  const nextRoundIndex = bracket.currentRound + 1;
-  if (nextRoundIndex >= bracket.rounds.length) return bracket;
-
-  const currentRoundMatchups = bracket.rounds[bracket.currentRound];
-  const winners = currentRoundMatchups.map((m) => m.winner!);
-
-  const nextRound = bracket.rounds[nextRoundIndex].map((m, i) => {
-    const foodA = winners[i * 2] ?? null;
-    const foodB = winners[i * 2 + 1] ?? null;
-    const isBye = foodA !== null && foodB === null;
-    return {
-      ...m,
-      foodA: foodA!,
-      foodB,
-      winner: isBye ? foodA : null,
-    };
-  });
-
-  const rounds = bracket.rounds.map((r, i) => (i === nextRoundIndex ? nextRound : r));
-
-  let result: Bracket = {
+  if (bracket.currentRound + 1 >= bracket.rounds.length) {
+    return bracket;
+  }
+  return {
     ...bracket,
-    rounds,
-    currentRound: nextRoundIndex,
+    currentRound: bracket.currentRound + 1,
     currentMatchup: 0,
   };
-
-  const allResolved = nextRound.every((m) => m.winner !== null);
-  if (allResolved && nextRoundIndex < rounds.length - 1) {
-    result = advanceRound(result);
-  }
-
-  return result;
 }
 
 export function getChampion(bracket: Bracket): Food | null {
